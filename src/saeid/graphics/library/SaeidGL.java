@@ -15,8 +15,8 @@ import java.util.ArrayList;
 
 public class SaeidGL extends JFrame {
 
-    private static final int FP_WIDTH = 650;
-    private static final int FP_HEIGHT = 450;
+    private static final int FP_WIDTH = 650 + 10;
+    private static final int FP_HEIGHT = 450 + 17;
 
     private static final int SELECTOR_LINE = 0;
     private static final int SELECTOR_CIRCLE = 1;
@@ -26,10 +26,10 @@ public class SaeidGL extends JFrame {
             "X1:", "Y1:", "X2:", "Y2:"
     };
     private static final String[] LABELS_CIRCLE = new String[]{
-            "X:", "Y:", "R:"
+            "X Center:", "Y Center:", "Radius:"
     };
     private static final String[] LABELS_ELLIPSE = new String[]{
-            "X1:", "Y1:", "X2:", "Y2:", "R:"
+            "X Center:", "Y Center:", "X Radius:", "Y Radius:"
     };
 
     private saeid.component.Canvas canvas;
@@ -51,10 +51,9 @@ public class SaeidGL extends JFrame {
     private void init() {
         Dimension ss = Toolkit.getDefaultToolkit().getScreenSize();
         setSize(FP_WIDTH, FP_HEIGHT);
-        setLocation(
-                //(int) (ss.getWidth() - FP_WIDTH) / 2
-                700 , (int) (ss.getHeight() - FP_HEIGHT) / 2);
+        setLocation((int) (ss.getWidth() - FP_WIDTH) / 2, (int) (ss.getHeight() - FP_HEIGHT) / 2);
         setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
+        setTitle("Saeid GL");
 
         setLayout(new GridBagLayout());
 
@@ -129,7 +128,8 @@ public class SaeidGL extends JFrame {
                 } catch (NumberFormatException nfe) {
                     args[i] = 0;
                 }
-            switch (cb_shapeSelector.getSelectedIndex()) { // TODO
+            System.out.println(canvas.getSize());
+            switch (cb_shapeSelector.getSelectedIndex()) {
                 case SELECTOR_LINE:
                     draw.midpointLine(args[0], args[1], args[2], args[3]);
                     break;
@@ -137,7 +137,7 @@ public class SaeidGL extends JFrame {
                     draw.circle(args[0], args[1], args[2]);
                     break;
                 case SELECTOR_ELLIPSE:
-                    draw.ellipse(args[0], args[1], args[2], args[3], args[4]);
+                    draw.ellipse(args[0], args[1], args[2], args[3]);
                     break;
             }
         });
@@ -235,8 +235,8 @@ public class SaeidGL extends JFrame {
         textFields.add(temp2);
         getContentPane().add(temp2, gbc);
 
-        for (int i = 0; i < textFields.size(); i++)
-            textFields.get(i).addKeyListener(new KeyAdapter(){
+        for (JTextField textField : textFields)
+            textField.addKeyListener(new KeyAdapter() {
                 @Override
                 public void keyTyped(KeyEvent e) {
                     super.keyTyped(e);

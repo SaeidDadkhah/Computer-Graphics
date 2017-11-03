@@ -17,6 +17,7 @@ public class Draw {
         graphics.drawLine(x, y, x, y);
     }
 
+    @SuppressWarnings("SuspiciousNameCombination")
     private void putPixel(int x, int y, boolean reverse) {
         if (reverse)
             graphics.drawLine(y, x, y, x);
@@ -24,6 +25,7 @@ public class Draw {
             graphics.drawLine(x, y, x, y);
     }
 
+    @SuppressWarnings("SuspiciousNameCombination")
     public void midpointLine(int x0, int y0, int x1, int y1) {
         int x, y, d, dx, dy, increaseE, increaseNE;
         boolean reverse = false;
@@ -57,7 +59,7 @@ public class Draw {
         increaseE = 2 * dy;
         increaseNE = 2 * (dy - dx);
         if (dy < 0) {
-            increaseNE = 2 * (- dy - dx);
+            increaseNE = 2 * (-dy - dx);
         }
 
         x = x0;
@@ -90,11 +92,69 @@ public class Draw {
     }
 
     public void circle(int x, int y, int radius) {
-        graphics.drawLine(x, y, x + radius, y + radius);
+        int tmpX, tmpY, err;
+        tmpX = radius;
+        tmpY = 0;
+        err = 0;
+
+        while (tmpX >= tmpY) {
+            putPixel(x + tmpX, y + tmpY);
+            putPixel(x + tmpY, y + tmpX);
+            putPixel(x - tmpY, y + tmpX);
+            putPixel(x - tmpX, y + tmpY);
+            putPixel(x - tmpX, y - tmpY);
+            putPixel(x - tmpY, y - tmpX);
+            putPixel(x + tmpY, y - tmpX);
+            putPixel(x + tmpX, y - tmpY);
+
+            if (err <= 0) {
+                tmpY += 1;
+                err += 2 * tmpY + 1;
+            } else {
+                tmpX -= 1;
+                err -= 2 * tmpX + 1;
+            }
+        }
     }
 
-    public void ellipse(int x1, int y1, int x2, int y2, int r) {
-        graphics.drawLine(x1, y1, x2 + r, y2 + r);
+    public void ellipse(int xc, int yc, int rx, int ry) {
+        int x, y, p;
+        x = 0;
+        y = ry;
+        p = (ry * ry) - (rx * rx * ry) + ((rx * rx) / 4);
+        while ((2 * x * ry * ry) < (2 * y * rx * rx)) {
+            putPixel(xc + x, yc - y);
+            putPixel(xc - x, yc + y);
+            putPixel(xc + x, yc + y);
+            putPixel(xc - x, yc - y);
+
+            if (p < 0) {
+                x = x + 1;
+                p = p + (2 * ry * ry * x) + (ry * ry);
+            } else {
+                x = x + 1;
+                y = y - 1;
+                p = p + (2 * ry * ry * x + ry * ry) - (2 * rx * rx * y);
+            }
+        }
+        p = (int) ((x + 0.5) * (x + 0.5) * ry * ry + (y - 1) * (y - 1) * rx * rx - rx * rx * ry * ry);
+
+        while (y >= 0) {
+            putPixel(xc + x, yc - y);
+            putPixel(xc - x, yc + y);
+            putPixel(xc + x, yc + y);
+            putPixel(xc - x, yc - y);
+
+            if (p > 0) {
+                y = y - 1;
+                p = p - (2 * rx * rx * y) + (rx * rx);
+
+            } else {
+                y = y - 1;
+                x = x + 1;
+                p = p + (2 * ry * ry * x) - (2 * rx * rx * y) - (rx * rx);
+            }
+        }
     }
 
 }
