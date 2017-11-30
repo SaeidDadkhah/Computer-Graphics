@@ -1,6 +1,7 @@
 package saeid.drawer;
 
 import java.awt.*;
+import java.util.ArrayList;
 
 /**
  * Project "Homework 01" created by Saeid Dadkhah on 2017-11-02.
@@ -155,6 +156,127 @@ public class Draw {
                 p = p + (2 * ry * ry * x) - (2 * rx * rx * y) - (rx * rx);
             }
         }
+    }
+
+    public void fill(int[] x, int[] y, Dimension canvasSize) {
+        // check for default
+        if (x.length == 0) {
+            x = new int[]{130, 140, 190, 150, 170, 130, 90, 110, 70, 120};
+            y = new int[]{20, 50, 50, 70, 100, 80, 100, 70, 50, 50};
+        }
+
+        // build edge table
+        ETElement[] etElements = new ETElement[(int) canvasSize.getHeight()];
+        for (int i = 0; i < x.length; i++) {
+            int j = (i + 1) % x.length;
+            int xMin;
+            int yMin;
+            int yMax;
+            if (y[i] < y[j]) {
+                xMin = x[i];
+                yMin = y[i];
+                yMax = y[j];
+            } else {
+                xMin = x[j];
+                yMin = y[j];
+                yMax = y[i];
+            }
+            if (y[i] == y[j])
+                continue;
+
+            if (etElements[yMin] == null) {
+                etElements[yMin] = new ETElement(yMax, xMin, ((double) x[i] - x[j]) / (y[i] - y[j]));
+            } else {
+                ETElement current = etElements[yMin];
+                while (current.getNextETElement() != null &&
+                        current.getNextETElement().getYMax() < yMax)
+                    current = current.getNextETElement();
+                ETElement newEtElement = new ETElement(
+                        yMax,
+                        xMin,
+                        ((double) x[i] - x[j]) / (y[i] - y[j]),
+                        current.getNextETElement());
+                current.setNextETElement(newEtElement);
+            }
+        }
+
+        ArrayList<ETElement> aet = new ArrayList<>();
+        for (int row = 0; row < canvasSize.getHeight(); row++) {
+            // add new edges
+            for (ETElement current = etElements[row]; current != null; current = current.getNextETElement())
+                aet.add(current);
+
+            for (int i = 0; i < aet.size(); i++)
+                if (aet.get(i).getYMax() <= row) {
+                    aet.remove(aet.get(i));
+                    i--;
+                }
+
+            if (aet.isEmpty())
+                continue;
+
+            // sort
+            for (int i = 0; i < aet.size() - 1; i++) {
+                if (!(aet.get(i).getX() < aet.get(i + 1).getX())) {
+                    ETElement temp = aet.get(i + 1);
+                    aet.remove(i + 1);
+                    int j = 0;
+                    while (temp.getX() > aet.get(j).getX())
+                        j++;
+                    aet.add(j, temp);
+                }
+            }
+
+            // fill
+            for (int i = 0; i < aet.size() - 1; i += 2)
+                for (int currentX = aet.get(i).getX(); currentX < aet.get(i + 1).getX(); currentX++)
+                    putPixel(currentX, row);
+
+            // add slope to x
+            for (ETElement anAet : aet) {
+                anAet.addSlopeToX();
+            }
+        }
+    }
+
+}
+
+class ETElement {
+
+    private int yMax;
+    private double x;
+    private double reversedSlope;
+    private ETElement nextETElement;
+
+    ETElement(int yMax, int x, double reversedSlope, ETElement nextETElement) {
+        this.yMax = yMax;
+        this.x = x;
+        this.reversedSlope = reversedSlope;
+        this.nextETElement = nextETElement;
+    }
+
+    ETElement(int yMax, int x, double reversedSlope) {
+        this(yMax, x, reversedSlope, null);
+    }
+
+    int getYMax() {
+        return yMax;
+    }
+
+    int getX() {
+        return (int) x;
+    }
+
+    void setNextETElement(ETElement nextETElement) {
+        this.nextETElement = nextETElement;
+    }
+
+    ETElement getNextETElement() {
+        return nextETElement;
+    }
+
+    void addSlopeToX() {
+        x += reversedSlope;
     }
 
 }

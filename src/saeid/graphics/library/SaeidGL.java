@@ -15,12 +15,13 @@ import java.util.ArrayList;
 
 public class SaeidGL extends JFrame {
 
-    private static final int FP_WIDTH = 650 + 10;
-    private static final int FP_HEIGHT = 450 + 17;
+    private static final int FP_WIDTH = 650 + 26;
+    private static final int FP_HEIGHT = 450 + 61;
 
     private static final int SELECTOR_LINE = 0;
     private static final int SELECTOR_CIRCLE = 1;
     private static final int SELECTOR_ELLIPSE = 2;
+    private static final int SELECTOR_FILL = 3;
 
     private static final String[] LABELS_LINE = new String[]{
             "X1:", "Y1:", "X2:", "Y2:"
@@ -30,6 +31,9 @@ public class SaeidGL extends JFrame {
     };
     private static final String[] LABELS_ELLIPSE = new String[]{
             "X Center:", "Y Center:", "X Radius:", "Y Radius:"
+    };
+    private static final String[] LABELS_FILL = new String[]{
+            "X1:", "Y1:", "X2:", "Y2:", "X3:", "Y3:", "X4:", "Y4:", "X5:", "Y5:", "X6:", "Y6:",
     };
 
     private saeid.component.Canvas canvas;
@@ -77,7 +81,7 @@ public class SaeidGL extends JFrame {
         gbc.gridwidth = 1;
         gbc.weightx = 0.25;
         gbc.weighty = 0;
-        gbc.insets = new Insets(0,3, 4, 1);
+        gbc.insets = new Insets(0, 3, 4, 1);
         getContentPane().add(new JLabel("Select Shape:"), gbc);
 
         gbc.gridx++;
@@ -87,6 +91,7 @@ public class SaeidGL extends JFrame {
         cb_shapeSelector.addItem("Line");
         cb_shapeSelector.addItem("Circle");
         cb_shapeSelector.addItem("Ellipse");
+        cb_shapeSelector.addItem("Fill (Clear arguments to print default)");
         cb_shapeSelector.addActionListener(e -> {
             String[] labels;
             switch (cb_shapeSelector.getSelectedIndex()) {
@@ -98,6 +103,9 @@ public class SaeidGL extends JFrame {
                     break;
                 case SELECTOR_ELLIPSE:
                     labels = LABELS_ELLIPSE;
+                    break;
+                case SELECTOR_FILL:
+                    labels = LABELS_FILL;
                     break;
                 default:
                     labels = null;
@@ -121,7 +129,7 @@ public class SaeidGL extends JFrame {
         b_draw = new JButton("Draw");
         b_draw.addActionListener(e -> {
             Draw draw = new Draw(canvas.getGraphics());
-            int[] args = new int[8];
+            int[] args = new int[textFields.size()];
             for (int i = 0; i < textFields.size(); i++)
                 try {
                     args[i] = Integer.parseInt(textFields.get(i).getText());
@@ -138,6 +146,28 @@ public class SaeidGL extends JFrame {
                     break;
                 case SELECTOR_ELLIPSE:
                     draw.ellipse(args[0], args[1], args[2], args[3]);
+                    break;
+                case SELECTOR_FILL:
+                    int count = 0;
+                    boolean exist = false;
+                    for (int i = 0; i < args.length; i++)
+                        if (args[i] != 0) {
+                            count = i;
+                            exist = true;
+                        }
+                    if (exist) {
+                        if (count % 2 == 1)
+                            count++;
+                        else
+                            count += 2;
+                    }
+                    int[] x = new int[count / 2];
+                    int[] y = new int[count / 2];
+                    for (int i = 0; i < count; i += 2) {
+                        x[i / 2] = args[i];
+                        y[i / 2] = args[i + 1];
+                    }
+                    draw.fill(x, y, canvas.getSize());
                     break;
             }
         });
@@ -189,7 +219,53 @@ public class SaeidGL extends JFrame {
         textFields.add(temp2);
         getContentPane().add(temp2, gbc);
 
-        // Arguments 1st Row
+        // Arguments 2nd Row
+        gbc.gridx = 0;
+        gbc.gridy++;
+        gbc.gridwidth = 1;
+        gbc.weightx = 0.25;
+        gbc.weighty = 0;
+        temp = new JLabel();
+        labels.add(temp);
+        getContentPane().add(temp, gbc);
+
+        gbc.gridx++;
+        temp = new JLabel();
+        labels.add(temp);
+        getContentPane().add(temp, gbc);
+
+        gbc.gridx++;
+        temp = new JLabel();
+        labels.add(temp);
+        getContentPane().add(temp, gbc);
+
+        gbc.gridx++;
+        temp = new JLabel();
+        labels.add(temp);
+        getContentPane().add(temp, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy++;
+        temp2 = new JTextField();
+        textFields.add(temp2);
+        getContentPane().add(temp2, gbc);
+
+        gbc.gridx++;
+        temp2 = new JTextField();
+        textFields.add(temp2);
+        getContentPane().add(temp2, gbc);
+
+        gbc.gridx++;
+        temp2 = new JTextField();
+        textFields.add(temp2);
+        getContentPane().add(temp2, gbc);
+
+        gbc.gridx++;
+        temp2 = new JTextField();
+        textFields.add(temp2);
+        getContentPane().add(temp2, gbc);
+
+        // Arguments 2nd Row
         gbc.gridx = 0;
         gbc.gridy++;
         gbc.gridwidth = 1;
