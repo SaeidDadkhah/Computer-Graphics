@@ -8,6 +8,16 @@ import java.util.ArrayList;
  */
 public class Draw {
 
+    /*
+    |_ midpoint line
+    |_ circle
+    |_ ellipse
+    |_ fill
+    |_ line clipping
+      |_ Cohen-Sutherland
+      |_ Liang Barsky
+
+     */
     private Graphics graphics;
 
     public Draw(Graphics graphics) {
@@ -15,21 +25,42 @@ public class Draw {
     }
 
     private void putPixel(int x, int y) {
+        putPixel(x, y, Color.BLACK);
+    }
+
+    private void putPixel(int x, int y, Color color) {
+        graphics.setColor(color);
         graphics.drawLine(x, y, x, y);
     }
 
+//    private void putPixel(int x, int y, boolean reverse) {
+//        putPixel(x, y, reverse, Color.BLACK);
+//    }
+
     @SuppressWarnings("SuspiciousNameCombination")
-    private void putPixel(int x, int y, boolean reverse) {
+    private void putPixel(int x, int y, boolean reverse, Color color) {
+        graphics.setColor(color);
         if (reverse)
             graphics.drawLine(y, x, y, x);
         else
             graphics.drawLine(x, y, x, y);
     }
 
-    @SuppressWarnings("SuspiciousNameCombination")
     public void midpointLine(int x0, int y0, int x1, int y1) {
+        midpointLine(x0, y0, x1, y1, Color.BLACK);
+    }
+
+    @SuppressWarnings("SuspiciousNameCombination")
+    private void midpointLine(int x0, int y0, int x1, int y1, Color color) {
         int x, y, d, dx, dy, increaseE, increaseNE;
         boolean reverse = false;
+
+        if (x0 == 0 && y0 == 0 && x1 == 0 && y1 == 0) {
+            x0 = 100;
+            y0 = 300;
+            x1 = 500;
+            y1 = 300;
+        }
 
         if (Math.abs(y0 - y1) > Math.abs(x0 - x1)) {
             x = x0;
@@ -66,7 +97,7 @@ public class Draw {
         x = x0;
         y = y0;
 
-        putPixel(x, y, reverse);
+        putPixel(x, y, reverse, color);
         if (dy >= 0) {
             while (x < x1) {
                 if (d <= 0) {
@@ -76,7 +107,7 @@ public class Draw {
                     y++;
                 }
                 x++;
-                putPixel(x, y, reverse);
+                putPixel(x, y, reverse, color);
             }
         } else {
             while (x < x1) {
@@ -87,12 +118,18 @@ public class Draw {
                     y--;
                 }
                 x++;
-                putPixel(x, y, reverse);
+                putPixel(x, y, reverse, color);
             }
         }
     }
 
     public void circle(int x, int y, int radius) {
+        if (x == 0 && y == 0 && radius == 0) {
+            x = 300;
+            y = 275;
+            radius = 75;
+        }
+
         int tmpX, tmpY, err;
         tmpX = radius;
         tmpY = 0;
@@ -119,6 +156,13 @@ public class Draw {
     }
 
     public void ellipse(int xc, int yc, int rx, int ry) {
+        if (xc == 0 && yc == 0 && rx == 0 && ry == 0) {
+            xc = 300;
+            yc = 300;
+            rx = 150;
+            ry = 50;
+        }
+
         int x, y, p;
         x = 0;
         y = ry;
@@ -161,7 +205,7 @@ public class Draw {
     public void fill(int[] x, int[] y, Dimension canvasSize) {
         // check for default
         if (x.length == 0) {
-            x = new int[]{130, 140, 190, 150, 170, 130, 90, 110, 70, 120};
+            x = new int[]{300, 310, 360, 320, 340, 300, 260, 280, 240, 290};
             y = new int[]{20, 50, 50, 70, 100, 80, 100, 70, 50, 50};
         }
 
@@ -239,8 +283,261 @@ public class Draw {
         }
     }
 
+    private static final int INSIDE = 0;
+    private static final int LEFT = 1;
+    private static final int RIGHT = 2;
+    private static final int BOTTOM = 4;
+    private static final int TOP = 8;
+
+    private int xMin;
+    private int xMax;
+    private int yMin;
+    private int yMax;
+
+    public void cohenSutherlandLineClipping(int xMin, int yMin, int xMax, int yMax, int x[], int y[]) {
+        this.xMin = xMin;
+        this.yMin = yMin;
+        this.xMax = xMax;
+        this.yMax = yMax;
+
+        if (x.length == 0) {
+            this.xMin = 100;
+            this.yMin = 100;
+            this.xMax = 200;
+            this.yMax = 200;
+
+            ArrayList<Integer> xAL = new ArrayList<>();
+            ArrayList<Integer> yAL = new ArrayList<>();
+            xAL.add(70);
+            yAL.add(120);
+            xAL.add(120);
+            yAL.add(70);
+
+            xAL.add(80);
+            yAL.add(140);
+            xAL.add(140);
+            yAL.add(80);
+
+            xAL.add(230);
+            yAL.add(120);
+            xAL.add(170);
+            yAL.add(70);
+
+            xAL.add(220);
+            yAL.add(140);
+            xAL.add(160);
+            yAL.add(80);
+
+            xAL.add(50);
+            yAL.add(150);
+            xAL.add(250);
+            yAL.add(150);
+
+            xAL.add(150);
+            yAL.add(50);
+            xAL.add(150);
+            yAL.add(250);
+
+            xAL.add(190);
+            yAL.add(130);
+            xAL.add(130);
+            yAL.add(190);
+
+            x = new int[xAL.size()];
+            y = new int[yAL.size()];
+            for (int i = 0; i < xAL.size(); i++) {
+                x[i] = xAL.get(i);
+                y[i] = yAL.get(i);
+            }
+        }
+
+        midpointLine(this.xMin, this.yMin, this.xMax, this.yMin, Color.BLUE);
+        midpointLine(this.xMin, this.yMin, this.xMin, this.yMax, Color.BLUE);
+        midpointLine(this.xMax, this.yMax, this.xMax, this.yMin, Color.BLUE);
+        midpointLine(this.xMax, this.yMax, this.xMin, this.yMax, Color.BLUE);
+
+        for (int i = 0; i < x.length; i += 2) {
+            midpointLine(x[i], y[i], x[i + 1], y[i + 1]);
+
+            Point point = cohenSutherlandLineClipper(x[i], y[i], x[i + 1], y[i + 1]);
+
+            if (point != null)
+                midpointLine(point.getX0(), point.getY0(), point.getX1(), point.getY1(), Color.RED);
+        }
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private Point cohenSutherlandLineClipper(int x0, int y0, int x1, int y1) {
+        int outCode0 = computeOutCode(x0, y0);
+        int outCode1 = computeOutCode(x1, y1);
+        boolean accept = false;
+
+        while (true) {
+            if ((outCode0 | outCode1) == 0) {
+                accept = true;
+                break;
+            } else if ((outCode0 & outCode1) != 0) {
+                break;
+            } else {
+                int outCode;
+                if (outCode0 != 0)
+                    outCode = outCode0;
+                else
+                    outCode = outCode1;
+
+                int x;
+                int y;
+                if ((outCode & TOP) != 0) {
+                    x = x0 + (yMax - y0) * (x1 - x0) / (y1 - y0);
+                    y = yMax;
+                } else if ((outCode & BOTTOM) != 0) {
+                    x = x0 + (yMin - y0) * (x1 - x0) / (y1 - y0);
+                    y = yMin;
+                } else if ((outCode & RIGHT) != 0) {
+                    x = xMax;
+                    y = y0 + (xMax - x0) * (y1 - y0) / (x1 - x0);
+                } else { // if ((outCode & LEFT) != 0)
+                    x = xMin;
+                    y = y0 + (xMin - x0) * (y1 - y0) / (x1 - x0);
+                }
+
+                if (outCode == outCode0) {
+                    x0 = x;
+                    y0 = y;
+                    outCode0 = computeOutCode(x0, y0);
+                } else {
+                    x1 = x;
+                    y1 = y;
+                    outCode1 = computeOutCode(x1, y1);
+                }
+            }
+        }
+
+        if (accept)
+            return new Point(x0, y0, x1, y1);
+        else
+            return null;
+    }
+
+    private int computeOutCode(int x, int y) {
+        int code = INSIDE;
+        if (x < xMin)
+            code |= LEFT;
+        else if (x > xMax)
+            code |= RIGHT;
+        if (y < yMin)
+            code |= BOTTOM;
+        else if (y > yMax)
+            code |= TOP;
+        return code;
+    }
+
+    public void liangBarskyLineClipping(int xMin, int yMin, int xMax, int yMax, int x[], int y[]) {
+        this.xMin = xMin;
+        this.yMin = yMin;
+        this.xMax = xMax;
+        this.yMax = yMax;
+
+        if (x.length == 0) {
+            this.xMin = 400;
+            this.yMin = 100;
+            this.xMax = 500;
+            this.yMax = 200;
+
+            ArrayList<Integer> xAL = new ArrayList<>();
+            ArrayList<Integer> yAL = new ArrayList<>();
+            xAL.add(370);
+            yAL.add(120);
+            xAL.add(420);
+            yAL.add(70);
+
+            xAL.add(380);
+            yAL.add(140);
+            xAL.add(440);
+            yAL.add(80);
+
+            xAL.add(530);
+            yAL.add(120);
+            xAL.add(470);
+            yAL.add(70);
+
+            xAL.add(520);
+            yAL.add(140);
+            xAL.add(460);
+            yAL.add(80);
+
+            xAL.add(350);
+            yAL.add(150);
+            xAL.add(550);
+            yAL.add(150);
+
+            xAL.add(450);
+            yAL.add(50);
+            xAL.add(450);
+            yAL.add(250);
+
+            xAL.add(490);
+            yAL.add(130);
+            xAL.add(430);
+            yAL.add(190);
+
+            x = new int[xAL.size()];
+            y = new int[yAL.size()];
+            for (int i = 0; i < xAL.size(); i++) {
+                x[i] = xAL.get(i);
+                y[i] = yAL.get(i);
+            }
+        }
+
+        midpointLine(this.xMin, this.yMin, this.xMax, this.yMin, Color.BLUE);
+        midpointLine(this.xMin, this.yMin, this.xMin, this.yMax, Color.BLUE);
+        midpointLine(this.xMax, this.yMax, this.xMax, this.yMin, Color.BLUE);
+        midpointLine(this.xMax, this.yMax, this.xMin, this.yMax, Color.BLUE);
+
+        for (int i = 0; i < x.length; i += 2) {
+            midpointLine(x[i], y[i], x[i + 1], y[i + 1]);
+
+            Point point = liangBarskyLineClipper(x[i], y[i], x[i + 1], y[i + 1]);
+
+            if (point != null)
+                midpointLine(point.getX0(), point.getY0(), point.getX1(), point.getY1(), Color.RED);
+        }
+    }
+
+    private Point liangBarskyLineClipper(int x0, int y0, int x1, int y1) {
+        double u1 = 0;
+        double u2 = 1;
+        int dx = x1 - x0;
+        int dy = y1 - y0;
+        int p[] = {-dx, dx, -dy, dy};
+        int q[] = {x0 - xMin, xMax - x0, y0 - yMin, yMax - y0};
+
+        for (int i = 0; i < 4; i++) {
+            if (p[i] == 0) {
+                if (q[i] < 0)
+                    return null;
+            } else {
+                double u = (double) q[i] / p[i];
+                if (p[i] < 0) {
+                    u1 = Math.max(u, u1);
+                } else {
+                    u2 = Math.min(u, u2);
+                }
+            }
+        }
+        if (u1 > u2)
+            return null;
+
+        return new Point(
+                (int) (x0 + u1 * dx),
+                (int) (y0 + u1 * dy),
+                (int) (x0 + u2 * dx),
+                (int) (y0 + u2 * dy));
+    }
+
 }
 
+// edge table element: used for scan line filling algorithm
 class ETElement {
 
     private int yMax;
@@ -279,4 +576,35 @@ class ETElement {
         x += reversedSlope;
     }
 
+}
+
+class Point {
+
+    private int x0;
+    private int y0;
+    private int x1;
+    private int y1;
+
+    Point(int x0, int y0, int x1, int y1) {
+        this.x0 = x0;
+        this.y0 = y0;
+        this.x1 = x1;
+        this.y1 = y1;
+    }
+
+    int getX0() {
+        return x0;
+    }
+
+    int getY0() {
+        return y0;
+    }
+
+    int getX1() {
+        return x1;
+    }
+
+    int getY1() {
+        return y1;
+    }
 }
