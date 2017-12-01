@@ -256,7 +256,7 @@ public class SaeidGL extends JFrame {
         setVisible(true);
     }
 
-    public int[][] getXYArray(int[] args, int offset) {
+    private int[][] getXYArray(int[] args, int offset) {
         int count = 0;
         boolean exist = false;
         for (int i = 0; i < args.length; i++)
